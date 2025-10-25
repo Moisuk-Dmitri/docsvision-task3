@@ -3,7 +3,7 @@ import { DirectoryDesignerRow } from "@docsvision/webclient/BackOffice/Directory
 import { GenModels } from "@docsvision/webclient/Generated/DocsVision.WebClient.Models";
 import { $MessageBox } from "@docsvision/webclient/System/$MessageBox";
 import { NumberControl } from "@docsvision/webclient/Platform/Number";
-import { $DepartmentController, $EmployeeController } from "@docsvision/webclient/Generated/DocsVision.WebClient.Controllers";
+import { $DepartmentController, $DirectoryDesignerRowController, $EmployeeController } from "@docsvision/webclient/Generated/DocsVision.WebClient.Controllers";
 import { MessageBox } from "@docsvision/webclient/Helpers/MessageBox/MessageBox";
 import { StaffDirectoryItems } from "@docsvision/webclient/BackOffice/StaffDirectoryItems";
 import { DateTimePicker } from "@docsvision/webclient/Platform/DateTimePicker";
@@ -44,6 +44,22 @@ export class ApplicationBusinessTripLogic {
     public async printMainInfo(buttonCtrl: CustomButton) {
         let layout = buttonCtrl.layout;
 
+        let cityId = layout.controls.tryGet<DirectoryDesignerRow>("cityRow").params.value.id;
+        let cityName: string;
+        const url = `http://dvappserver.engineer.school:5004/api/v1/cards/4538149D-1FC7-4D41-A104-890342C6B4F8/1b1a44fb-1fb1-4876-83aa-95ad38907e24/${cityId}`;
+        await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const nameField = data.data.fields.find((field: any) => field.alias === "Name");
+                cityName = nameField ? nameField.value : null;
+            })
+            .catch(error => console.error('Error: fetch cityName was not completed', error));
+
         let name = layout.controls.tryGet<TextBox>("titleTextBox");
         let dateOfCreation = layout.controls.tryGet<DateTimePicker>("date");
         let startDate = layout.controls.tryGet<DateTimePicker>("startDate");
@@ -54,7 +70,9 @@ export class ApplicationBusinessTripLogic {
             dateOfCreation.params.value == null ||
             startDate.params.value == null ||
             endDate.params.value == null ||
-            !tripReason.params.value) {
+            !tripReason.params.value ||
+            !cityName
+        ) {
             await layout.getService($MessageBox).showError('Информация не заполнена!');
             return;
             }
@@ -64,7 +82,8 @@ export class ApplicationBusinessTripLogic {
             'Дата создания: ' + dateOfCreation.params.value.toLocaleDateString('ru-RU') + '\n' +
             'Дата с: ' + startDate.params.value.toLocaleDateString('ru-RU') + '\n' +
             'Дата по: ' + endDate.params.value.toLocaleDateString('ru-RU') + '\n' +
-            'Основание для поездки: ' +tripReason.params.value
+            'Основание для поездки: ' + tripReason.params.value + '\n' +
+            'Название города: ' + cityName
         );
     }
 }
