@@ -48,11 +48,27 @@ define(['tslib', '@docsvision/webclient/System/$MessageBox', '@docsvision/webcli
         };
         ApplicationBusinessTripLogic.prototype.printMainInfo = function (buttonCtrl) {
             return tslib.__awaiter(this, void 0, void 0, function () {
-                var layout, name, dateOfCreation, startDate, endDate, tripReason;
+                var layout, cityId, cityName, url, name, dateOfCreation, startDate, endDate, tripReason;
                 return tslib.__generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             layout = buttonCtrl.layout;
+                            cityId = layout.controls.tryGet("cityRow").params.value.id;
+                            url = "http://dvappserver.engineer.school:5004/api/v1/cards/4538149D-1FC7-4D41-A104-890342C6B4F8/1b1a44fb-1fb1-4876-83aa-95ad38907e24/" + cityId;
+                            return [4 /*yield*/, fetch(url, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    }
+                                })
+                                    .then(function (response) { return response.json(); })
+                                    .then(function (data) {
+                                    var nameField = data.data.fields.find(function (field) { return field.alias === "Name"; });
+                                    cityName = nameField ? nameField.value : null;
+                                })
+                                    .catch(function (error) { return console.error('Error: fetch cityName was not completed', error); })];
+                        case 1:
+                            _a.sent();
                             name = layout.controls.tryGet("titleTextBox");
                             dateOfCreation = layout.controls.tryGet("date");
                             startDate = layout.controls.tryGet("startDate");
@@ -62,17 +78,19 @@ define(['tslib', '@docsvision/webclient/System/$MessageBox', '@docsvision/webcli
                                 dateOfCreation.params.value == null ||
                                 startDate.params.value == null ||
                                 endDate.params.value == null ||
-                                !tripReason.params.value)) return [3 /*break*/, 2];
+                                !tripReason.params.value ||
+                                !cityName)) return [3 /*break*/, 3];
                             return [4 /*yield*/, layout.getService($MessageBox.$MessageBox).showError('Информация не заполнена!')];
-                        case 1:
+                        case 2:
                             _a.sent();
                             return [2 /*return*/];
-                        case 2: return [4 /*yield*/, layout.getService($MessageBox.$MessageBox).showInfo('Имя: ' + name.params.value + '\n' +
+                        case 3: return [4 /*yield*/, layout.getService($MessageBox.$MessageBox).showInfo('Имя: ' + name.params.value + '\n' +
                                 'Дата создания: ' + dateOfCreation.params.value.toLocaleDateString('ru-RU') + '\n' +
                                 'Дата с: ' + startDate.params.value.toLocaleDateString('ru-RU') + '\n' +
                                 'Дата по: ' + endDate.params.value.toLocaleDateString('ru-RU') + '\n' +
-                                'Основание для поездки: ' + tripReason.params.value)];
-                        case 3:
+                                'Основание для поездки: ' + tripReason.params.value + '\n' +
+                                'Название города: ' + cityName)];
+                        case 4:
                             _a.sent();
                             return [2 /*return*/];
                     }
