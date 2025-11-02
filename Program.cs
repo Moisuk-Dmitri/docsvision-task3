@@ -43,10 +43,10 @@ namespace IntroductionToSDK {
 		public static void CreateCardBusinessTrip(UserSession session, ObjectContext context) {
 			Console.WriteLine($"Session: {session.Id}");
 
-			var BusinessTripKindId = new Guid("{0A4F9FDB-8EEE-46A2-9627-C13E4D3C4783}");
-			var BusinessTripKind = context.GetObject<KindsCardKind>(BusinessTripKindId);
+			var documentCardKind = context.GetObject<KindsCardKind>(new Guid("{8ACE1220-A452-455D-8EEB-9EDF9DC6E327}"));
+			var businesstripCardKind = documentCardKind.Kinds.FirstOrDefault(x => (string)x.GetValue("Name") == "Заявка на командировку");
 			var docSvc = context.GetService<IDocumentService>();
-			var businessTrip = docSvc.CreateDocument(null, BusinessTripKind);
+			var businessTrip = docSvc.CreateDocument(null, businesstripCardKind);
 
 			businessTrip.MainInfo["Name"] = "created from code";
 			businessTrip.MainInfo[CardDocument.MainInfo.RegDate] = DateTime.Now;
@@ -65,7 +65,10 @@ namespace IntroductionToSDK {
 			businessTrip.MainInfo["secondedPerson"] = staffSvc.FindEmpoyeeByAccountName("ENGINEER\\ilya_lebedev").GetObjectId();
 			businessTrip.MainInfo["supervisor"] = staffSvc.GetEmployeeManager(staffSvc.FindEmpoyeeByAccountName("ENGINEER\\ilya_lebedev")).GetObjectId();
 			businessTrip.MainInfo["Phone"] = staffSvc.FindEmpoyeeByAccountName("ENGINEER\\ilya_lebedev").Phone;
-			businessTrip.MainInfo["ResponsDepartment"] = staffSvc.GetDepartment(new Guid("{B839669B-ECF9-4B94-856E-1687EF151C77}")).GetObjectId();
+
+			var staffCard = context.GetObject<Staff>(new Guid("{6710B92A-E148-4363-8A6F-1AA0EB18936C}"));
+			var depCard = staffCard.Units.FirstOrDefault(x => (string)x.GetValue("Name") == "Микоян");
+			businessTrip.MainInfo["ResponsDepartment"] = staffSvc.GetDepartment(depCard.Units[0].GetObjectId()).GetObjectId();
 
 			var baseUSvc = context.GetService<IBaseUniversalService>();
 			businessTrip.MainInfo["city"] = baseUSvc.FindItemWithSameName("Сургут", context.GetObject<BaseUniversalItemType>(new Guid("{2EF8FC87-D4F4-49E5-A87E-9777A7598157}"))).GetObjectId();
